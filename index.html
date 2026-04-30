@@ -37,12 +37,7 @@
             color: #555;
             font-size: 14px;
         }
-        .hint-text {
-            font-weight: normal;
-            font-size: 12px;
-            color: #777;
-            margin-left: 4px;
-        }
+        select,
         input[type="text"],
         input[type="number"] {
             width: 100%;
@@ -51,9 +46,11 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 16px; 
+            background-color: white;
         }
         input[type="text"]:focus,
-        input[type="number"]:focus {
+        input[type="number"]:focus,
+        select:focus {
             border-color: #007bff;
             outline: none;
             box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
@@ -74,10 +71,19 @@
             background-color: #218838;
         }
         #status-message {
-            margin-top: 15px;
+            margin-top: 20px;
+            padding: 15px;
             text-align: center;
-            font-weight: bold;
+            border-radius: 8px;
+            font-size: 18px;
             display: none;
+        }
+        .sku-highlight {
+            font-size: 24px;
+            font-weight: 900;
+            display: block;
+            margin-top: 10px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -86,14 +92,26 @@
 <div class="form-container">
     <h2>Add New Item 👗</h2>
     <form id="inventory-form">
+        
         <div class="form-group">
-            <label for="sku">Item SKU <span class="hint-text">(e.g., JKT-0426-01)</span></label>
-            <input type="text" id="sku" name="sku" placeholder="Format: TYPE-MMYY-##" required>
+            <label for="category">Item Category</label>
+            <select id="category" name="category" required>
+                <option value="" disabled selected>Select a category...</option>
+                <option value="TEE">T-Shirt / Top (TEE)</option>
+                <option value="SHR">Collared Shirt / Blouse (SHR)</option>
+                <option value="SWT">Sweater / Hoodie (SWT)</option>
+                <option value="JKT">Jacket / Coat (JKT)</option>
+                <option value="PNT">Pants / Jeans (PNT)</option>
+                <option value="SKT">Skirt (SKT)</option>
+                <option value="DRS">Dress (DRS)</option>
+                <option value="ACC">Accessory / Bag (ACC)</option>
+                <option value="MSC">Miscellaneous (MSC)</option>
+            </select>
         </div>
         
         <div class="form-group">
-            <label for="description">Item Description <span class="hint-text">(e.g., Vintage Harley Tee)</span></label>
-            <input type="text" id="description" name="description" placeholder="Brief description" required>
+            <label for="description">Item Description</label>
+            <input type="text" id="description" name="description" placeholder="e.g., Vintage Harley Tee" required>
         </div>
         
         <div class="form-group">
@@ -101,7 +119,7 @@
             <input type="number" id="cost" name="cost" step="0.01" min="0" placeholder="e.g., 5.50" required>
         </div>
         
-        <button type="submit">Log Item</button>
+        <button type="submit" id="submit-btn">Log Item & Get SKU</button>
         <div id="status-message"></div>
     </form>
 </div>
@@ -110,45 +128,66 @@
     document.getElementById('inventory-form').addEventListener('submit', function(e) {
         e.preventDefault(); 
 
-        const sku = document.getElementById('sku').value;
+        const submitBtn = document.getElementById('submit-btn');
+        const statusMessage = document.getElementById('status-message');
+        
+        // Grab data from the form
+        const category = document.getElementById('category').value;
         const description = document.getElementById('description').value;
         const cost = document.getElementById('cost').value;
 
         const payload = {
-            sku: sku,
+            category: category,
             description: description,
-            cost: cost,
-            timestamp: new Date().toLocaleString() // Updated to clean local time format
+            cost: cost
         };
 
-        const statusMessage = document.getElementById('status-message');
-        statusMessage.style.display = 'block';
-        statusMessage.style.color = '#007bff';
-        statusMessage.innerText = 'Sending...';
+        // UI updates while waiting for server
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Generating SKU...';
+        statusMessage.style.display = 'none';
         
         const backendURL = 'https://script.google.com/macros/s/AKfycby67jMn-fz7WO2RecS2NhnKCId1pnx5Htg8paRfBy-L2WqPRCN6LZQCVwHwFewecg/exec';
                             
         fetch(backendURL, {
             method: 'POST',
-            mode: 'no-cors', 
+            /* 
+               IMPORTANT: Removing 'no-cors' here because we NEED to read the response 
+               from the server to get the generated SKU. 'no-cors' makes the response opaque.
+               Since we set 'Who has access: Anyone' in Apps Script, standard CORS should pass.
+            */
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'text/plain;charset=utf-8' // Helps bypass strict CORS preflight checks
             },
             body: JSON.stringify(payload)
         })
-        .then(() => {
-            statusMessage.style.color = 'green';
-            statusMessage.innerText = 'Item logged successfully!';
-            document.getElementById('inventory-form').reset();
-            
-            setTimeout(() => {
-                statusMessage.style.display = 'none';
-            }, 3000);
+        .then(response => response.json())
+        .then(data => {
+            if(data.result === 'success') {
+                // Display the massive success message with the new SKU
+                statusMessage.style.display = 'block';
+                statusMessage.style.backgroundColor = '#d4edda';
+                statusMessage.style.color = '#155724';
+                statusMessage.style.border = '1px solid #c3e6cb';
+                statusMessage.innerHTML = `Saved! Write this on the tag:<br><span class="sku-highlight">${data.sku}</span>`;
+                
+                document.getElementById('inventory-form').reset();
+            } else {
+                throw new Error(data.message);
+            }
         })
         .catch(error => {
             console.error('Error:', error);
-            statusMessage.style.color = 'red';
-            statusMessage.innerText = 'Error logging item.';
+            statusMessage.style.display = 'block';
+            statusMessage.style.backgroundColor = '#f8d7da';
+            statusMessage.style.color = '#721c24';
+            statusMessage.style.border = '1px solid #f5c6cb';
+            statusMessage.innerText = 'Error logging item. Check connection.';
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Log Item & Get SKU';
         });
     });
 </script>
