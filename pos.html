@@ -21,7 +21,7 @@
         .input-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #aaa; }
         
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="tel"] {
             width: 100%;
             padding: 15px;
             background: #222;
@@ -87,7 +87,7 @@
         
         <div class="input-group">
             <label>Price Sold For ($)</label>
-            <input type="number" id="price" step="any" placeholder="0.00">
+            <input type="text" inputmode="numeric" id="price" placeholder="0.00">
         </div>
 
         <div class="input-group">
@@ -110,8 +110,8 @@
                 <input type="radio" id="ven-styelsy" name="vendor" value="Styelsy" checked>
                 <label for="ven-styelsy" class="btn">Styelsy</label>
                 
-                <input type="radio" id="ven-friend1" name="vendor" value="Friend A">
-                <label for="ven-friend1" class="btn">Friend A</label>
+                <input type="radio" id="ven-sofia" name="vendor" value="Sofia">
+                <label for="ven-sofia" class="btn">Sofia</label>
                 
                 <input type="radio" id="ven-friend2" name="vendor" value="Friend B">
                 <label for="ven-friend2" class="btn">Friend B</label>
@@ -132,41 +132,57 @@
 </div>
 
 <script>
+    // --- SQUARE-STYLE AUTO DECIMAL LOGIC ---
+    const priceInput = document.getElementById('price');
+    
+    priceInput.addEventListener('input', function(e) {
+        // Strip out everything except numeric digits
+        let rawNumbers = this.value.replace(/\D/g, '');
+        
+        // If the user clears the box, leave it blank
+        if (!rawNumbers) {
+            this.value = '';
+            return;
+        }
+        
+        // Convert to an integer, then divide by 100 to get the decimal
+        // e.g., typing '4555' becomes 4555 / 100 = 45.55
+        let formattedNumber = (parseInt(rawNumbers, 10) / 100).toFixed(2);
+        
+        // Update the display
+        this.value = formattedNumber;
+    });
+
+    // --- FORM SUBMISSION LOGIC ---
     document.getElementById('pos-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const btn = document.getElementById('submit-btn');
         const status = document.getElementById('status');
         
-        // --- 1. THE BOUNCER (Validation) ---
         const priceNode = document.getElementById('price').value;
         const methodNode = document.querySelector('input[name="method"]:checked');
         const vendorNode = document.querySelector('input[name="vendor"]:checked');
 
-        // Check if anything essential is missing
-        if (!priceNode || !methodNode || !vendorNode) {
+        // Check if anything essential is missing (or if price is left at exactly 0.00)
+        if (!priceNode || priceNode === '0.00' || !methodNode || !vendorNode) {
             btn.innerText = 'MISSING INFO!';
-            btn.style.backgroundColor = '#ff4444'; // Red alert
+            btn.style.backgroundColor = '#ff4444'; 
             status.style.color = '#ff4444';
             status.innerText = '⚠️ Please fill out the Price and Payment Method.';
             
-            // Revert back to normal after 2.5 seconds
             setTimeout(() => {
                 btn.innerText = 'LOG SALE';
-                btn.style.backgroundColor = '#4ade80'; // Back to green
+                btn.style.backgroundColor = '#4ade80';
                 status.innerText = '';
             }, 2500);
             
-            // Vibrate the phone to get your attention (works on Android)
             if (navigator.vibrate) navigator.vibrate(200);
-            
-            return; // Kills the script instantly so it doesn't crash or send bad data
+            return; 
         }
 
-        // --- 2. LOGGING THE DATA ---
         btn.innerText = 'LOGGING...';
         
-        // Grab the actual text values now that we know they exist
         const price = priceNode;
         const method = methodNode.value;
         const vendor = vendorNode.value;
@@ -184,7 +200,6 @@
         .then(data => {
             document.getElementById('pos-form').reset();
             
-            // Re-check the Styelsy default so it's ready for the next one
             document.getElementById('ven-styelsy').checked = true; 
             
             btn.innerText = 'LOG SALE';
