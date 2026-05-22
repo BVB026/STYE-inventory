@@ -74,8 +74,9 @@
             font-weight: 900;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.2s;
         }
-        #status { text-align: center; margin-top: 15px; font-weight: bold; }
+        #status { text-align: center; margin-top: 15px; font-weight: bold; min-height: 24px; }
     </style>
 </head>
 <body>
@@ -86,13 +87,13 @@
         
         <div class="input-group">
             <label>Price Sold For ($)</label>
-            <input type="number" id="price" step="any" required placeholder="0.00">
+            <input type="number" id="price" step="any" placeholder="0.00">
         </div>
 
         <div class="input-group">
             <label>Payment Method</label>
             <div class="grid-options">
-                <input type="radio" id="pay-cash" name="method" value="Cash" required>
+                <input type="radio" id="pay-cash" name="method" value="Cash">
                 <label for="pay-cash" class="btn">💵 Cash</label>
                 
                 <input type="radio" id="pay-square" name="method" value="Square">
@@ -109,8 +110,8 @@
                 <input type="radio" id="ven-styelsy" name="vendor" value="Styelsy" checked>
                 <label for="ven-styelsy" class="btn">Styelsy</label>
                 
-                <input type="radio" id="ven-Sofia" name="vendor" value="Sofia">
-                <label for="ven-Sofia" class="btn">Sofia</label>
+                <input type="radio" id="ven-friend1" name="vendor" value="Friend A">
+                <label for="ven-friend1" class="btn">Friend A</label>
                 
                 <input type="radio" id="ven-friend2" name="vendor" value="Friend B">
                 <label for="ven-friend2" class="btn">Friend B</label>
@@ -136,13 +137,40 @@
         
         const btn = document.getElementById('submit-btn');
         const status = document.getElementById('status');
+        
+        // --- 1. THE BOUNCER (Validation) ---
+        const priceNode = document.getElementById('price').value;
+        const methodNode = document.querySelector('input[name="method"]:checked');
+        const vendorNode = document.querySelector('input[name="vendor"]:checked');
+
+        // Check if anything essential is missing
+        if (!priceNode || !methodNode || !vendorNode) {
+            btn.innerText = 'MISSING INFO!';
+            btn.style.backgroundColor = '#ff4444'; // Red alert
+            status.style.color = '#ff4444';
+            status.innerText = '⚠️ Please fill out the Price and Payment Method.';
+            
+            // Revert back to normal after 2.5 seconds
+            setTimeout(() => {
+                btn.innerText = 'LOG SALE';
+                btn.style.backgroundColor = '#4ade80'; // Back to green
+                status.innerText = '';
+            }, 2500);
+            
+            // Vibrate the phone to get your attention (works on Android)
+            if (navigator.vibrate) navigator.vibrate(200);
+            
+            return; // Kills the script instantly so it doesn't crash or send bad data
+        }
+
+        // --- 2. LOGGING THE DATA ---
         btn.innerText = 'LOGGING...';
         
-        // Grab values
-        const price = document.getElementById('price').value;
+        // Grab the actual text values now that we know they exist
+        const price = priceNode;
+        const method = methodNode.value;
+        const vendor = vendorNode.value;
         const sku = document.getElementById('sku').value;
-        const method = document.querySelector('input[name="method"]:checked').value;
-        const vendor = document.querySelector('input[name="vendor"]:checked').value;
 
         // PASTE YOUR NEW WEBHOOK URL HERE
         const backendURL = 'https://script.google.com/macros/s/AKfycbxURZgSBA8FFqbLDUq5NX59lyflJ2Ybl8S7svRYKEE6AZEpMRNT-mUSwy0TsT3YnNNfoA/exec';
@@ -167,7 +195,9 @@
         })
         .catch(err => {
             btn.innerText = 'ERROR';
-            btn.style.backgroundColor = 'red';
+            btn.style.backgroundColor = '#ff4444';
+            status.style.color = '#ff4444';
+            status.innerText = 'Check your connection.';
         });
     });
 </script>
