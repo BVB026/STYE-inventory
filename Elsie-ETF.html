@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #0d0d0f; /* Deep dark background */
+            background-color: #0d0d0f; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,11 +20,11 @@
             color: #ffffff;
         }
         .card {
-            background: #1a1a1d;
+            background: #151515; 
             padding: 40px 25px;
             border-radius: 16px;
             border: 1px solid #333;
-            box-shadow: 0 10px 40px rgba(255, 0, 127, 0.15); /* Subtle pink underglow */
+            box-shadow: 0 10px 40px rgba(255, 0, 127, 0.15); 
             width: 100%;
             max-width: 360px;
         }
@@ -33,7 +33,6 @@
             font-size: 4rem;
             margin: 0 0 10px 0;
             color: #fff;
-            /* Recreating the physical neon sign glow */
             text-shadow:
                 0 0 5px #fff,
                 0 0 10px #fff,
@@ -52,14 +51,29 @@
             padding: 12px;
             border-radius: 8px;
             font-size: 16px;
-            color: #ff99cc;
-            margin-bottom: 25px;
+            color: #ff99cc; 
+            margin-bottom: 20px;
             letter-spacing: 0.5px;
         }
+        
+        .qr-container {
+            background: #ffffff; 
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.2); 
+        }
+        .qr-container img {
+            display: block;
+            width: 150px;
+            height: 150px;
+        }
+
         button {
             width: 100%;
             padding: 16px;
-            background-color: transparent;
+            background-color: #151515;
             color: #ff007f;
             border: 2px solid #ff007f;
             border-radius: 10px;
@@ -67,7 +81,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
         }
         button:hover, button.clicked {
             background-color: #ff007f;
@@ -77,19 +90,12 @@
         .trust-badge {
             margin-top: 25px;
             font-size: 13px;
-            color: #4ade80; /* Soft green */
+            color: #4ade80; 
             font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-        }
-        /* Hide the actual image tag for now since we are using the CSS neon logo */
-        .actual-image-logo {
-            display: none; 
-            width: 100%;
-            border-radius: 8px;
-            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -102,6 +108,10 @@
         
         <div class="email-display-box">
             M.Elsie@hotmail.com
+        </div>
+
+        <div class="qr-container">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://styelsy.netlify.app/elsie-etf" alt="Scan to open checkout page">
         </div>
         
         <button id="copyBtn" onclick="copyEmail('M.Elsie@hotmail.com')">Copy Email Address</button>
@@ -116,11 +126,9 @@
             navigator.clipboard.writeText(email).then(() => {
                 const btn = document.getElementById('copyBtn');
                 
-                // Change button state to show success
                 btn.innerText = 'Copied! ✅';
                 btn.classList.add('clicked');
                 
-                // Revert back after 3 seconds
                 setTimeout(() => {
                     btn.innerText = 'Copy Email Address';
                     btn.classList.remove('clicked');
