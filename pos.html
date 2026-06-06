@@ -121,15 +121,23 @@
             </div>
         </div>
 
+        <!-- NEW UPDATED VISUAL: Market Location Tap Grid -->
         <div class="input-group">
-  <label for="market">Market Location:</label>
-  <select id="market" name="market">
-    <option value="Good Friends">Good Friends</option>
-    <option value="IDK">IDK</option>
-    <option value="Offline">Offline</option>
-    <option value="Other">Other</option>
-  </select>
-</div>
+            <label>Market Location</label>
+            <div class="grid-options two-col">
+                <input type="radio" id="mrkt-goodfriends" name="market" value="Good Friends" checked>
+                <label for="mrkt-goodfriends" class="btn">🎪 Good Friends</label>
+                
+                <input type="radio" id="mrkt-idk" name="market" value="IDK">
+                <label for="mrkt-idk" class="btn">🤷 IDK</label>
+                
+                <input type="radio" id="mrkt-offline" name="market" value="Offline">
+                <label for="mrkt-offline" class="btn">🏠 Offline</label>
+                
+                <input type="radio" id="mrkt-other" name="market" value="Other">
+                <label for="mrkt-other" class="btn">📍 Other</label>
+            </div>
+        </div>
 
         <div class="input-group">
             <label>Item SKU (Optional)</label>
@@ -146,20 +154,12 @@
     const priceInput = document.getElementById('price');
     
     priceInput.addEventListener('input', function(e) {
-        // Strip out everything except numeric digits
         let rawNumbers = this.value.replace(/\D/g, '');
-        
-        // If the user clears the box, leave it blank
         if (!rawNumbers) {
             this.value = '';
             return;
         }
-        
-        // Convert to an integer, then divide by 100 to get the decimal
-        // e.g., typing '4555' becomes 4555 / 100 = 45.55
         let formattedNumber = (parseInt(rawNumbers, 10) / 100).toFixed(2);
-        
-        // Update the display
         this.value = formattedNumber;
     });
 
@@ -173,9 +173,10 @@
         const priceNode = document.getElementById('price').value;
         const methodNode = document.querySelector('input[name="method"]:checked');
         const vendorNode = document.querySelector('input[name="vendor"]:checked');
+        const marketNode = document.querySelector('input[name="market"]:checked'); // Grab chosen market
 
-        // Check if anything essential is missing (or if price is left at exactly 0.00)
-        if (!priceNode || priceNode === '0.00' || !methodNode || !vendorNode) {
+        // Check essential validation
+        if (!priceNode || priceNode === '0.00' || !methodNode || !vendorNode || !marketNode) {
             btn.innerText = 'MISSING INFO!';
             btn.style.backgroundColor = '#ff4444'; 
             status.style.color = '#ff4444';
@@ -196,21 +197,23 @@
         const price = priceNode;
         const method = methodNode.value;
         const vendor = vendorNode.value;
+        const market = marketNode.value; // Assign selected market to submit string
         const sku = document.getElementById('sku').value;
 
-        // PASTE YOUR NEW WEBHOOK URL HERE
         const backendURL = 'https://script.google.com/macros/s/AKfycbxURZgSBA8FFqbLDUq5NX59lyflJ2Ybl8S7svRYKEE6AZEpMRNT-mUSwy0TsT3YnNNfoA/exec';
         
         fetch(backendURL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ price, method, vendor, sku })
+            body: JSON.stringify({ price, method, vendor, market, sku }) // Fully sends the new data profile
         })
         .then(res => res.json())
         .then(data => {
             document.getElementById('pos-form').reset();
             
+            // Re-default checkboxes cleanly
             document.getElementById('ven-styelsy').checked = true; 
+            document.getElementById('mrkt-goodfriends').checked = true; // Auto resets to Good Friends for speed
             
             btn.innerText = 'LOG SALE';
             btn.style.backgroundColor = '#4ade80';
